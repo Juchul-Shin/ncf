@@ -16,9 +16,9 @@ import scipy.sparse as sp
 config = {
     "model": "MF",
     "model_path": "./models/",
-    "train_rating": "../save/NCF/ml-1m.train.rating",
-    "train_negative": "../save/NCF/ml-1m.train.negative",
-    "test_negative": "../save/NCF/ml-1m.test.negative",
+    "train_rating": "./dataset/ml-1m.train.rating",
+    "train_negative": "./dataset/ml-1m.train.negative",
+    "test_negative": "./dataset/ml-1m.test.negative",
 }
 
 args = {
@@ -157,7 +157,8 @@ class MF(nn.Module):
         self.embed_user = nn.Embedding(user_num, factor_num)
         self.embed_item = nn.Embedding(item_num, factor_num)
         predict_size = factor_num
-        self.predict_layer = torch.ones(predict_size, 1).cuda()
+        #self.predict_layer = torch.ones(predict_size, 1).cuda()
+        self.predict_layer = torch.ones(predict_size, 1).cpu()
         self._init_weight_()
 
     def _init_weight_(self):
@@ -183,7 +184,8 @@ class MF(nn.Module):
 
 def create_model(user_num, item_num, args):
     model = MF(user_num, item_num, args["factor_num"],)
-    model.cuda()
+    #model.cuda()
+    model.cpu()
     loss_function = nn.BCEWithLogitsLoss()
     optimizer = optim.Adam(model.parameters(), lr=args["lr"])
     return model, loss_function, optimizer
@@ -212,8 +214,10 @@ def metrics(model, test_loader, top_k):
     HR, NDCG = [], []
 
     for user, item, _ in test_loader:
-        user = user.cuda()
-        item = item.cuda()
+        #user = user.cuda()
+        #item = item.cuda()
+        user = user.cpu()
+        item = item.cpu()
 
         predictions = model(user, item)
         # 가장 높은 top_k개 선택
@@ -241,9 +245,13 @@ if __name__ == "__main__":
         train_loader.dataset.set_ng_sample()
 
         for user, item, label in train_loader:
-            user = user.cuda()
-            item = item.cuda()
-            label = label.float().cuda()
+            #user = user.cuda()
+            #item = item.cuda()
+            #label = label.float().cuda()
+            user = user.cpu()
+            item = item.cpu()
+            label = label.float().cpu()
+
 
             # gradient 초기화
             model.zero_grad()

@@ -16,15 +16,15 @@ import scipy.sparse as sp
 config = {
     "model": "MLP",
     "model_path": "./models/",
-    "train_rating": "../save/NCF/ml-1m.train.rating",
-    "train_negative": "../save/NCF/ml-1m.train.negative",
-    "test_negative": "../save/NCF/ml-1m.test.negative",
+    "train_rating": "./dataset/ml-1m.train.rating",
+    "train_negative": "./dataset/ml-1m.train.negative",
+    "test_negative": "./dataset/ml-1m.test.negative",
 }
 
 args = {
     "batch_size": 256,
     "dropout": 0.0,
-    "epochs": 20,
+    "epochs": 2,
     "factor_num": 32,
     "gpu": "0",
     "lr": 0.001,
@@ -222,7 +222,8 @@ def create_model(user_num, item_num, args):
         args["dropout"],
         config["model"],
     )
-    model.cuda()
+    #model.cuda()
+    model.cpu()
     loss_function = nn.BCEWithLogitsLoss()
     optimizer = optim.Adam(model.parameters(), lr=args["lr"])
     return model, loss_function, optimizer
@@ -251,8 +252,10 @@ def metrics(model, test_loader, top_k):
     HR, NDCG = [], []
 
     for user, item, _ in test_loader:
-        user = user.cuda()
-        item = item.cuda()
+        #user = user.cuda()
+        #item = item.cuda()
+        user = user.cpu()
+        item = item.cpu()
 
         predictions = model(user, item)
         # 가장 높은 top_k개 선택
@@ -278,9 +281,12 @@ if __name__ == "__main__":
         train_loader.dataset.set_ng_sample()
 
         for user, item, label in train_loader:
-            user = user.cuda()
-            item = item.cuda()
-            label = label.float().cuda()
+            #user = user.cuda()
+            #item = item.cuda()
+            #label = label.float().cuda()
+            user = user.cpu()
+            item = item.cpu()
+            label = label.float().cpu()
 
             # gradient 초기화
             model.zero_grad()
