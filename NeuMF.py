@@ -14,7 +14,6 @@ import config
 import evaluate
 import data_utils
 
-
 args = {
     "batch_size": 256,
     "dropout": 0.0,
